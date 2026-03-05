@@ -115,7 +115,7 @@ spec:
 kubectl apply -f helm/secrets-store-csi.yaml
 ```
 
-### Step 2.4: Verify Helm Values Configuration
+### Step 2.4: Verify Helm Values Configuration (Optional - see bottom section)
 
 The volume mounts should already be configured in your `helm/values.yaml` from Phase 3.1. Verify the configuration includes:
 
