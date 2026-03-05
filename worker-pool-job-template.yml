@@ -1,0 +1,134 @@
+{
+  "variables": {
+    "type": "object",
+    "properties": {
+      "env": {
+        "type": "object",
+        "title": "Environment Variables"
+      },
+      "name": {
+        "type": "string",
+        "title": "Name"
+      },
+      "image": {
+        "type": "string",
+        "title": "Image"
+      },
+      "labels": {
+        "type": "object",
+        "title": "Labels"
+      },
+      "command": {
+        "type": "string",
+        "title": "Command"
+      },
+      "namespace": {
+        "type": "string",
+        "title": "Namespace",
+        "default": "prefect"
+      },
+      "backoff_limit": {
+        "type": "integer",
+        "title": "Backoff Limit",
+        "default": 0
+      },
+      "stream_output": {
+        "type": "boolean",
+        "title": "Stream Output",
+        "default": true
+      },
+      "cluster_config": {
+        "type": "object",
+        "title": "Cluster Config"
+      },
+      "finished_job_ttl": {
+        "type": "integer",
+        "title": "Finished Job TTL"
+      },
+      "image_pull_policy": {
+        "type": "string",
+        "title": "Image Pull Policy",
+        "default": "IfNotPresent"
+      },
+      "service_account_name": {
+        "type": "string",
+        "title": "Service Account Name",
+        "default": "prefect-worker-sa"
+      },
+      "job_watch_timeout_seconds": {
+        "type": "integer",
+        "title": "Job Watch Timeout"
+      },
+      "pod_watch_timeout_seconds": {
+        "type": "integer",
+        "title": "Pod Watch Timeout",
+        "default": 60
+      }
+    }
+  },
+  "job_configuration": {
+    "env": "{{ env }}",
+    "name": "{{ name }}",
+    "labels": "{{ labels }}",
+    "command": "{{ command }}",
+    "namespace": "{{ namespace }}",
+    "job_manifest": {
+      "kind": "Job",
+      "spec": {
+        "template": {
+          "spec": {
+            "volumes": [
+              {
+                "csi": {
+                  "driver": "secrets-store.csi.k8s.io",
+                  "readOnly": true,
+                  "volumeAttributes": {
+                    "secretProviderClass": "prefect-kv-secrets"
+                  }
+                },
+                "name": "secrets-store-inline"
+              }
+            ],
+            "containers": [
+              {
+                "env": "{{ env }}",
+                "args": "{{ command }}",
+                "name": "prefect-job",
+                "image": "{{ image }}",
+                "volumeMounts": [
+                  {
+                    "name": "secrets-store-inline",
+                    "readOnly": true,
+                    "mountPath": "/mnt/secrets-store"
+                  }
+                ],
+                "imagePullPolicy": "{{ image_pull_policy }}"
+              }
+            ],
+            "completions": 1,
+            "parallelism": 1,
+            "restartPolicy": "Never",
+            "serviceAccountName": "{{ service_account_name }}"
+          },
+          "metadata": {
+            "labels": {
+              "azure.workload.identity/use": "true"
+            }
+          }
+        },
+        "backoffLimit": "{{ backoff_limit }}",
+        "ttlSecondsAfterFinished": "{{ finished_job_ttl }}"
+      },
+      "metadata": {
+        "labels": "{{ labels }}",
+        "namespace": "{{ namespace }}",
+        "generateName": "{{ name }}-"
+      },
+      "apiVersion": "batch/v1"
+    },
+    "stream_output": "{{ stream_output }}",
+    "cluster_config": "{{ cluster_config }}",
+    "job_watch_timeout_seconds": "{{ job_watch_timeout_seconds }}",
+    "pod_watch_timeout_seconds": "{{ pod_watch_timeout_seconds }}"
+  }
+}
