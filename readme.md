@@ -149,7 +149,7 @@ az role assignment create \
   --scope $KV_ID
 ```
 
-### Step 2.6: Apply Helm Upgrade
+### Step 2.6: Apply Helm Upgrade (Optional - see bottom section)
 
 ```bash
 helm upgrade prefect-worker prefect/prefect-worker \
